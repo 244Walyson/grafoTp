@@ -65,6 +65,13 @@
             Console.WriteLine("cheacando se o grafo e completo: "+ graph.AreCompletGraph());
             Console.WriteLine("cheacando se o grafo 2 e completo: "+ graph2.AreCompletGraph());
 
+
+
+            Console.WriteLine("isconnected: " + graph.isConnected());
+            graph.AddNode(teste);
+            Console.WriteLine("isconnected: " + graph.isConnected());
+
+
         }
     }
 }

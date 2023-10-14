@@ -125,8 +125,8 @@ namespace Grafos
         {
             Edge edge1 = edges.Find(edge => edge.Rotulo == a);
             Edge edge2 = edges.Find(edge => edge.Rotulo == b);
-            
-            if(edge1 != null && edge2 != null)
+
+            if (edge1 != null && edge2 != null)
             {
                 return edge1.Origem == edge2.Origem || edge1.Destino == edge2.Destino ||
                    edge1.Origem == edge2.Destino || edge1.Destino == edge2.Origem;
@@ -179,6 +179,47 @@ namespace Grafos
             return edges.Count == 0;
         }
 
+        public List<Edge> GetEdges(Node node)
+        {
+            return edges.FindAll(edge => edge.Origem == node || edge.Destino == node);
+        }
+
+        public bool isConnected()
+        {
+            if (nodes.Count == 0)
+            {
+                return true;
+            }
+
+            HashSet<Node> visited = new HashSet<Node>();
+            Queue<Node> queue = new Queue<Node>();
+
+            Node startNode = nodes[0];
+            queue.Enqueue(startNode);
+            visited.Add(startNode);
+
+            while (queue.Count > 0)
+            {
+                Node currentNode = queue.Dequeue();
+                List<Edge> adjacentEdges = GetEdges(currentNode);
+
+                foreach(Edge edge in adjacentEdges)
+                {
+                    Node neigbhor = edge.Destino;
+                    if (!visited.Contains(neigbhor))
+                    {
+                        queue.Enqueue(neigbhor);
+                        visited.Add(neigbhor);
+                    }
+                }
+            }
+
+            return visited.Count == nodes.Count;
+
+        }
+
+        
+        
 
         //print graph ---------------------------------------------------------
         public void printMatrix()
