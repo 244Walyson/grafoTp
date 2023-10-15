@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -203,7 +204,7 @@ namespace Grafos
                 Node currentNode = queue.Dequeue();
                 List<Edge> adjacentEdges = GetEdges(currentNode);
 
-                foreach(Edge edge in adjacentEdges)
+                foreach (Edge edge in adjacentEdges)
                 {
                     Node neigbhor = edge.Destino;
                     if (!visited.Contains(neigbhor))
@@ -218,8 +219,34 @@ namespace Grafos
 
         }
 
-        
-        
+        public List<Edge> FindBridgeNaive()
+        {
+            
+            List<Edge> bridges = new List<Edge>();
+            List<Edge> edgesCopy = new List<Edge>();
+
+            foreach (var edge in edges)
+            {
+                // Verifica se a aresta já existe no resultado e se é uma aresta inversa
+                bool isDuplicate = edgesCopy.Any(b => (b.Origem == edge.Destino && b.Destino == edge.Origem));
+
+                if (!isDuplicate)
+                {
+                    edgesCopy.Add(edge);
+                }
+            }
+            foreach (var edge in edgesCopy)
+            {               
+                removeEdge(edge.Origem, edge.Destino);
+                if (!isConnected())
+                {
+                    bridges.Add(edge);
+                }
+                addEdge(edge.Origem, edge.Destino, edge.Peso);
+            }
+            return bridges;
+        }
+
 
         //print graph ---------------------------------------------------------
         public void printMatrix()
@@ -261,6 +288,15 @@ namespace Grafos
                     }
                 }
                 Console.WriteLine();
+            }
+        }
+
+        public void PrintBridgesNaive()
+        {
+            List<Edge> bridges = FindBridgeNaive();
+            foreach (var edge in bridges)
+            {
+                Console.WriteLine(edge.Origem.Id + " --> " + edge.Destino.Id);
             }
         }
     }

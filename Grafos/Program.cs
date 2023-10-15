@@ -71,6 +71,10 @@
             graph.AddNode(teste);
             Console.WriteLine("isconnected: " + graph.isConnected());
 
+            graph.addEdge(node1, teste);
+            graph.printGraph();
+            Console.Write("bridges: " );
+            graph.PrintBridgesNaive();
 
         }
     }
