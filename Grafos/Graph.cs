@@ -248,6 +248,36 @@ namespace Grafos
         }
 
 
+        public List<Edge> DFS()
+        {
+            List<Edge> visitedEdges = new List<Edge>();
+            HashSet<Node> visitedNodes = new HashSet<Node>();
+
+            foreach(var node in nodes)
+            {
+                if (!visitedNodes.Contains(node))
+                {
+                    DFSHelper(node, visitedNodes, visitedEdges);
+                }
+            }
+            return visitedEdges;
+        }
+
+        private void DFSHelper(Node node, HashSet<Node> visitedNodes, List<Edge> visitedEdges)
+        {
+            visitedNodes.Add(node);
+
+            foreach(var edge in GetEdges(node))
+            {
+                if (!visitedNodes.Contains(node))
+                {
+                    visitedEdges.Add(edge);
+                    DFSHelper(edge.Destino, visitedNodes, visitedEdges);
+                }
+            }
+        }
+
+
         //print graph ---------------------------------------------------------
         public void printMatrix()
         {
