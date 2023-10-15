@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -247,6 +249,47 @@ namespace Grafos
             return bridges;
         }
 
+        public List<Edge> FindBridgesTarjam()
+        {
+            int[] low = new int[nodes.Count];
+            int[] disc = new int[nodes.Count];
+            bool[] visited = new bool[nodes.Count];
+            int time = 0;
+            List<Edge> bridges = new List<Edge>();
+
+            for(int i = 0; i< nodes.Count; i++)
+            {
+                if (!visited[i])
+                {
+                    TarjamDFS(i, -1, ref time, low, disc, visited, bridges);
+                }
+            }
+            return bridges;
+        }
+        private void TarjamDFS(int u, int parent, ref int time, int[] low, int[] disc, bool[] visited, List<Edge> bridges)
+        {
+            visited[u] = true;
+            disc[u] = low[u] = ++time;
+
+            foreach(var edge in GetEdges(nodes[u]))
+            {
+                int v = nodes.IndexOf(edge.Destino);
+                if (!visited[v])
+                {
+                    TarjamDFS(v, u, ref time, low, disc, visited, bridges);
+                    low[u] = Math.Min(low[u], low[v]);
+
+                    if (low[v] > disc[u])
+                    {
+                        bridges.Add(edge);
+                    }
+                }
+                else if(v != parent)
+                {
+                    low[u] = Math.Min(low[u], disc[v]);
+                }
+            }
+        }
 
         public List<Edge> DFS()
         {
@@ -327,6 +370,14 @@ namespace Grafos
             foreach (var edge in bridges)
             {
                 Console.WriteLine(edge.Origem.Id + " --> " + edge.Destino.Id);
+            }
+        }
+
+        public void printBridgestarjam()
+        {
+            foreach(var edge in FindBridgesTarjam())
+            {
+                Console.Write(edge.Origem.Id + " --> " + edge.Destino.Id);
             }
         }
     }

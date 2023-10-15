@@ -75,6 +75,8 @@
             graph.printGraph();
             Console.Write("bridges: " );
             graph.PrintBridgesNaive();
+            Console.WriteLine("usando tarjam: ");
+            graph.printBridgestarjam();
 
         }
     }
