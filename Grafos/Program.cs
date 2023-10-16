@@ -82,8 +82,8 @@ namespace Grafos
             Console.WriteLine("usando tarjam: ");
             graph.printBridgestarjam();*/
 
-            Graph graph = Graph.GenerateRandomGraph(10000,60000);
-            //graph.PrintBridgesNaive();
+            Graph graph = Graph.GenerateRandomGraph(100,200);
+            graph.PrintBridgesNaive();
             //graph.GenerateXlsx();
             graph.GetCSV();
 

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using System.IO;
+using System.IO.Enumeration;
 
 namespace Grafos
 {
@@ -389,6 +390,10 @@ namespace Grafos
                     writer.WriteLine();
                 }
             }
+
+            string caminhoDoCSV = @"C:\Users\walys\Desktop\grafo.csv";
+            string args = $"--import-file \"{caminhoDoCSV}\"";
+            Process.Start(@"C:\Program Files\Gephi-0.10.1\bin\gephi64.exe");
         }
         //print graph ---------------------------------------------------------
         public void printMatrix()
