@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace Grafos
 {
@@ -257,7 +260,7 @@ namespace Grafos
             int time = 0;
             List<Edge> bridges = new List<Edge>();
 
-            for(int i = 0; i< nodes.Count; i++)
+            for(int i = 0; i < nodes.Count; i++)
             {
                 if (!visited[i])
                 {
@@ -320,7 +323,73 @@ namespace Grafos
             }
         }
 
+        public Node GetNodeById(Object id)
+        {
+            return nodes.Find(node => node.Id.Equals(id));
+        }
 
+        public static Graph GenerateRandomGraph(int nodes, int edges)
+        {
+            Random random = new Random();
+            Graph graph = new Graph();
+
+            for (int i = 0; i < nodes; i++)
+            {
+                Node node = new Node(i);
+                graph.AddNode(node);
+            }
+            for(int i = 0; i < edges; i++)
+            {
+                Node destino = graph.GetNodeById(random.Next(nodes));
+                Node origem = graph.GetNodeById(random.Next(nodes));
+                int weight = random.Next(10000);
+                graph.addEdge(origem, destino, weight);
+            }
+            return graph;
+        }
+
+        public void GenerateXlsx()
+        {
+            getAdjacencyMatriz();
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("grafo1");
+
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    // Definir os rótulos das linhas e colunas
+                    worksheet.Cell(1, i + 2).Value = nodes[i].Id.ToString(); // Rótulos das colunas (na primeira linha)
+                    worksheet.Cell(i + 2, 1).Value = nodes[i].Id.ToString(); // Rótulos das linhas (na primeira coluna)
+
+                    for (int j = 0; j < nodes.Count; j++)
+                    {
+                        // Preencher os valores da matriz (começando da linha 2 e coluna 2)
+                        worksheet.Cell(i + 2, j + 2).Value = adjacencyMatrix[i, j];
+                    }
+                }
+                workbook.SaveAs(@"C:\Users\walys\Desktop\grafo.xlsx");
+            }
+            //Process.Start(new ProcessStartInfo(@"C:\Users\walys\Desktop\grafo.xlsx") { UseShellExecute = true });
+        }
+
+        public void GetCSV()
+        {
+            using (StreamWriter writer = new StreamWriter(@"C:\Users\walys\Desktop\grafo.csv"))
+            {
+                foreach (Node node in nodes)
+                {
+                    writer.Write(node.Id.ToString());
+                    foreach (Edge edge in edges)
+                    {
+                        if (edge.Origem == node)
+                        {
+                            writer.Write("; " + edge.Destino.Id);
+                        }
+                    }
+                    writer.WriteLine();
+                }
+            }
+        }
         //print graph ---------------------------------------------------------
         public void printMatrix()
         {

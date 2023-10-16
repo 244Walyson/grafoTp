@@ -13,3 +13,11 @@ C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\obj\Debug\net6.0\refint
 C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\obj\Debug\net6.0\Grafos.pdb
 C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\obj\Debug\net6.0\Grafos.genruntimeconfig.cache
 C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\obj\Debug\net6.0\ref\Grafos.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\ClosedXML.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\DocumentFormat.OpenXml.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\ExcelNumberFormat.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\Irony.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\SixLabors.Fonts.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\System.IO.Packaging.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\bin\Debug\net6.0\XLParser.dll
+C:\Users\walys\dotnetProjects\geekshopping\Grafos\Grafos\obj\Debug\net6.0\Grafos.csproj.CopyComplete

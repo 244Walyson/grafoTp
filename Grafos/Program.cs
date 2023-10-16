@@ -1,10 +1,14 @@
-﻿namespace Grafos
+﻿using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
+using DocumentFormat.OpenXml.Spreadsheet;
+using System.Diagnostics;
+
+namespace Grafos
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Node node1 = new Node("a");
+            /*Node node1 = new Node("a");
             Node node2 = new Node("b");
             Node node3 = new Node("c");
             Node node4 = new Node("d");
@@ -76,8 +80,29 @@
             Console.Write("bridges: " );
             graph.PrintBridgesNaive();
             Console.WriteLine("usando tarjam: ");
-            graph.printBridgestarjam();
+            graph.printBridgestarjam();*/
 
+            Graph graph = Graph.GenerateRandomGraph(10000,60000);
+            //graph.PrintBridgesNaive();
+            //graph.GenerateXlsx();
+            graph.GetCSV();
+
+
+
+            /*using (var workbook = new XLWorkbook())
+            {
+
+                var worksheet = workbook.Worksheets.Add("grafo");
+                worksheet.Cell("A1").Value = "testando";
+                worksheet.Cell("A2").Value = "testando";
+                worksheet.Cell("A3").Value = "testando";
+                worksheet.Cell("A4").Value = "testando";
+                worksheet.Cell("A5").Value = "testando";
+
+                workbook.SaveAs(@"C:\Users\walys\Desktop\teste.xlsx");
+            }
+
+            Process.Start(new ProcessStartInfo(@"C:\Users\walys\Desktop\grafo.xlsx") { UseShellExecute = true });*/
         }
     }
 }
