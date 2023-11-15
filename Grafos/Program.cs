@@ -11,7 +11,7 @@ namespace Grafos
         [LoaderOptimization(LoaderOptimization.MultiDomain)]
         static void Main(string[] args)
         {
-            /*Node node1 = new Node("a");
+           /* Node node1 = new Node("a");
             Node node2 = new Node("b");
             Node node3 = new Node("c");
             Node node4 = new Node("d");
@@ -30,12 +30,12 @@ namespace Grafos
             graph.AddNode(teste);
 
             // Adicionando arestas ao grafo
-            graph.addEdge(node1, node2, 1);
-            graph.addEdge(node2, node3, 1);
-            graph.addEdge(node3, node4, 1);
-            graph.addEdge(node4, node1, 1);
-            graph.addEdge(node1, node3, 1);
-            graph.addEdge(node2, node4, 1);
+            graph.AddEdge(node2, node3, 1);
+            graph.AddEdge(node1, node2, 1);
+            graph.AddEdge(node3, node4, 1);
+            graph.AddEdge(node4, node1, 1);
+            graph.AddEdge(node1, node3, 1);
+            graph.AddEdge(node2, node4, 1);
             // Imprimindo o grafo
             Console.WriteLine("Grafo:");
             graph.printGraph();
@@ -45,7 +45,7 @@ namespace Grafos
             Console.WriteLine("testes ---------------------------------------------");
 
             Console.WriteLine("adicionando aresta: ");
-            graph.addEdge(teste, node1, 5);
+            graph.AddEdge(teste, node1, 5);
             graph.printMatrix();
             graph.printGraph();
             Console.WriteLine("removento aresta: ");
@@ -67,10 +67,10 @@ namespace Grafos
             Console.WriteLine("checando a quantidade de vertices e arestas: ");
             Console.WriteLine("vertices: " + graph.CountNodes());
             Console.WriteLine("Arestas: " + graph.CountEdges());
-            Console.WriteLine("checando se o grafo esta vazio: " + graph.AreEmptyGraph());
-            Console.WriteLine("checando se o grafo 2 esta vazio: " + graph2.AreEmptyGraph());
-            Console.WriteLine("cheacando se o grafo e completo: "+ graph.AreCompletGraph());
-            Console.WriteLine("cheacando se o grafo 2 e completo: "+ graph2.AreCompletGraph());
+            Console.WriteLine("checando se o grafo esta vazio: " + graph.IsEmpty());
+            Console.WriteLine("checando se o grafo 2 esta vazio: " + graph2.IsEmpty());
+            Console.WriteLine("cheacando se o grafo e completo: "+ graph.IsEmpty());
+            Console.WriteLine("cheacando se o grafo 2 e completo: "+ graph2.IsEmpty());
 
 
 
@@ -78,12 +78,12 @@ namespace Grafos
             graph.AddNode(teste);
             Console.WriteLine("isconnected: " + graph.isConnected());
 
-            graph.addEdge(node1, teste);
+            graph.AddEdge(node1, teste);
             graph.printGraph();
             Console.Write("bridges: " );
             graph.PrintBridgesNaive();
             Console.WriteLine("usando tarjam: ");
-            graph.printBridgestarjam();*/
+            graph.PrintBridgesTarjan();*/
 
             /*Graph graph = new Graph();
             Node node1 = new Node("A");
@@ -137,13 +137,42 @@ namespace Grafos
 
 
 
-            Graph graph = Graph.GenerateRandomGraph(100, 200, 20);
+            /*Graph graph = Graph.GenerateRandomGraph(100, 200, 20);
             Console.WriteLine(graph.IsComplete);
 
             Console.WriteLine("naive------------------");
             graph.PrintBridgesNaive();
             Console.WriteLine("tarjan----------------");
-            graph.PrintBridgesTarjan();
+            graph.PrintBridgesTarjan();*/
+
+            Graph graph = new Graph();
+
+            Node a = new Node("A");
+            Node b = new Node("B");
+            Node c = new Node("C");
+            Node d = new Node("D");
+
+            graph.AddNode(a);
+            graph.AddNode(b);
+            graph.AddNode(c);
+            graph.AddNode(d);
+
+            graph.AddEdge(a, b);
+            graph.AddEdge(b, c);
+            graph.AddEdge(c, d);
+            graph.AddEdge(d, a);
+
+            //graph.printGraph(); // Para visualizar o grafo criado
+
+            List<Node> eulerianCycle = graph.Fleury();
+            if(eulerianCycle.Count > 0){
+                Console.WriteLine("aaa");
+            }
+            foreach (Node node in eulerianCycle)
+            {
+                Console.WriteLine(node.Id);
+            }
+
         }
     }
 }

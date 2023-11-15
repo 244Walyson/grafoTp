@@ -13,7 +13,6 @@ namespace Grafos
     {
         private List<Node> nodes;
         private List<Edge> edges;
-        private object lockObj = new object();
         public bool isDirected { get; set; }
         public int[,] adjacencyMatrix { get; set; }
 
@@ -41,7 +40,7 @@ namespace Grafos
             }
         }
 
-         // Representação usando matrix de adjacencia 
+        // Representação usando matrix de adjacencia 
         public void getAdjacencyMatriz()
         {
             adjacencyMatrix = new int[nodes.Count, nodes.Count];
@@ -266,7 +265,7 @@ namespace Grafos
             return edges.FindAll(edge => edge.Origem == node || edge.Destino == node);
         }
 
-        
+
         // busca pontes usando tarjan
         private void TarjanBridgesMult(List<Edge> bridges)
         {
@@ -505,13 +504,11 @@ namespace Grafos
 
                 for (int i = 0; i < nodes.Count; i++)
                 {
-                    // Definir os rótulos das linhas e colunas
-                    worksheet.Cell(1, i + 2).Value = nodes[i].Id.ToString(); // Rótulos das colunas (na primeira linha)
-                    worksheet.Cell(i + 2, 1).Value = nodes[i].Id.ToString(); // Rótulos das linhas (na primeira coluna)
+                    worksheet.Cell(1, i + 2).Value = nodes[i].Id.ToString();
+                    worksheet.Cell(i + 2, 1).Value = nodes[i].Id.ToString();
 
                     for (int j = 0; j < nodes.Count; j++)
                     {
-                        // Preencher os valores da matriz (começando da linha 2 e coluna 2)
                         worksheet.Cell(i + 2, j + 2).Value = adjacencyMatrix[i, j];
                     }
                 }
@@ -543,6 +540,94 @@ namespace Grafos
             string args = $"--import-file \"{caminhoDoCSV}\"";
             Process.Start(@"C:\Program Files\Gephi-0.10.1\bin\gephi64.exe");
         }
+
+        public List<Node> Fleury()
+        {
+            if (!isConnected() || CountOddNodes() > 2)
+            {
+                Console.WriteLine("não existe caminho euleriano possiivel");
+                return null;
+            }
+
+            Node startNode = nodes.FirstOrDefault(node => GetEdges(node).Count % 2 != 0);
+
+            startNode = nodes.FirstOrDefault();
+
+            List<Node> euleryaCicle = new List<Node>();
+
+            return euleryaCicle;
+
+        }
+
+        public void FleuryRecursive(Node currentNode, List<Node> eulerianCycle)
+        {
+            List<Edge> edgesCopy = new List<Edge>(edges);
+
+            foreach (Edge edge in edgesCopy)
+            {
+                Node nextNode = edge.Destino;
+                if (IsValidNextEdge(currentNode, nextNode))
+                {
+                    removeEdge(currentNode, nextNode);
+                    eulerianCycle.Add(nextNode);
+                    FleuryRecursive(nextNode, eulerianCycle);
+                }
+            }
+        }
+        public bool IsValidNextEdge(Node current, Node nextNode)
+        {
+            if (GetEdges(current).Count == 1)
+            {
+                return true;
+            }
+            if (IsBridge(current, nextNode))
+            {
+                return false;
+            }
+
+            Graph tempGraph = new Graph(isDirected);
+            tempGraph.nodes.AddRange(nodes);
+            tempGraph.edges.AddRange(edges);
+            tempGraph.removeEdge(current, nextNode);
+
+            if (!tempGraph.isConnected())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool IsBridge(Node current, Node nextNode)
+        {
+            List<Edge> bridges = FindBridgesTarjan();
+
+            return bridges.Any(edge => (edge.Origem == current && edge.Destino == nextNode) || (edge.Origem == nextNode && edge.Destino == current));
+        }
+
+
+        public int CountOddNodes()
+        {
+            int count = 0;
+
+            foreach (Node node in nodes)
+            {
+                int edgeCount = edges.Count(edge => edge.Origem == node || edge.Destino == node);
+
+                if (!isDirected)
+                {
+                    edgeCount = edgeCount / 2;
+                }
+
+                if (edgeCount % 2 != 0)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
 
     }
 }
