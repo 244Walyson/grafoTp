@@ -85,52 +85,65 @@ namespace Grafos
             Console.WriteLine("usando tarjam: ");
             graph.printBridgestarjam();*/
 
-            Stopwatch sw = new Stopwatch();
-            Stopwatch sw2 = new Stopwatch();
-            Stopwatch sw3 = new Stopwatch();
-            sw.Start();
-            //Graph graph = Graph.GenerateRandomGraph(10000,20000);
-            Graph graph = Graph.GenerateRandomGraphMultithreaded(100000, 200000, 20);
-            sw.Stop();
-            var tg = sw.Elapsed;
-            //graph.PrintBridgesNaive();
-            //sw2.Start();
-            //graph.FindBridgesTarjam();
-            //sw2.Stop();
-            //var tj = sw2.Elapsed;
-            sw3.Start();
-            graph.FindBridgesTarjanMultithreaded();
-            var tjt = sw3.Elapsed;
-            //graph.GenerateXlsx();
-            //graph.GetCSV();
-            //sw.Restart();
-            //graph.FindBridgeNaive();
-            //sw.Stop();
-            //var tn = sw.Elapsed;
-            //graph.PrintBridgesNaive();
-            //graph.printBridgestarjam();
+            /*Graph graph = new Graph();
+            Node node1 = new Node("A");
+            Node node2 = new Node("B");
+            Node node3 = new Node("C");
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
 
-            Console.WriteLine("tempo para criação do grafo de 100.000 vertices e 200.000 arestas: " + tg);
-            //Console.WriteLine("tempo de execução Naive: " + tn);
-            //Console.WriteLine("Tempo de execução tarjam: " + tj);
-            Console.WriteLine("Tempo de execução tarjan: " + tjt);
+            // Testando adição de arestas e impressão do grafo
+            graph.addEdge(node1, node2, 1);
+            graph.addEdge(node2, node3, 1);
+            graph.addEdge(node1, node3, 2);
+            Console.WriteLine("Grafo:");
+            graph.printGraph();
+
+            // Testando métodos de contagem
+            Console.WriteLine("Número de vértices: " + graph.CountNodes()); // Deve imprimir 3
+            Console.WriteLine("Número de arestas: " + graph.CountEdges());  // Deve imprimir 2
+
+            // Testando remoção de arestas
+            Console.WriteLine("Removendo aresta entre A e B:");
+            graph.removeEdge(node1, node2);
+            graph.printGraph();
+
+            // Testando remoção de nó
+            Console.WriteLine("Removendo nó B:");
+            graph.removeNode(node2);
+            graph.printGraph();
+
+            // Testando adjacência de nós e arestas
+            Console.WriteLine("Checando adjacência entre A e C: " + graph.AreNodeAdjacency(node1, node3)); // Deve imprimir False
+            graph.addEdgeLabel(node1, node3, "label1");
+            Console.WriteLine("Checando adjacência entre as arestas 1 e 2: " + graph.AreEdgesAdjacent("label1", "label2")); // Deve imprimir False
+            Console.WriteLine("Checando se existe a aresta 'A'->'C': " + graph.ExistsEdge(node1, node3)); // Deve imprimir True
+
+            // Testando métodos de conectividade
+            Console.WriteLine("Grafo está conectado: " + graph.isConnected()); // Deve imprimir False
+            graph.addEdge(node1, node3);
+            Console.WriteLine("Grafo está conectado: " + graph.isConnected()); // Deve imprimir True
+
+            // Testando métodos de verificação de grafos
+            Console.WriteLine("Grafo é completo: " + graph.AreCompletGraph()); // Deve imprimir True
+
+            // Testando métodos de identificação de pontes
+            Console.WriteLine("Pontes encontradas pelo método Naive:");
+            graph.PrintBridgesNaive();
+
+            Console.WriteLine("Pontes encontradas pelo método de Tarjan:");
+            graph.PrintBridgesTarjan();*/
 
 
 
-            /*using (var workbook = new XLWorkbook())
-            {
+            Graph graph = Graph.GenerateRandomGraph(100, 200, 20);
+            Console.WriteLine(graph.IsComplete);
 
-                var worksheet = workbook.Worksheets.Add("grafo");
-                worksheet.Cell("A1").Value = "testando";
-                worksheet.Cell("A2").Value = "testando";
-                worksheet.Cell("A3").Value = "testando";
-                worksheet.Cell("A4").Value = "testando";
-                worksheet.Cell("A5").Value = "testando";
-
-                workbook.SaveAs(@"C:\Users\walys\Desktop\teste.xlsx");
-            }
-
-            Process.Start(new ProcessStartInfo(@"C:\Users\walys\Desktop\grafo.xlsx") { UseShellExecute = true });*/
+            Console.WriteLine("naive------------------");
+            graph.PrintBridgesNaive();
+            Console.WriteLine("tarjan----------------");
+            graph.PrintBridgesTarjan();
         }
     }
 }
