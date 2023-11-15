@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ClosedXML.Excel;
 using System.IO;
 using System.IO.Enumeration;
+using DocumentFormat.OpenXml.EMMA;
 
 namespace Grafos
 {
@@ -48,6 +49,7 @@ namespace Grafos
         private List<Edge> edges;
         public int[,] adjacencyMatrix { get; set; }
         public bool isDirected { get; set; }
+        private object lockObj = new object();
 
         public Graph(bool directed = false)
         {
@@ -186,11 +188,6 @@ namespace Grafos
             return edges.Count == 0;
         }
 
-        public List<Edge> GetEdges(Node node)
-        {
-            return edges.FindAll(edge => edge.Origem == node || edge.Destino == node);
-        }
-
         public bool isConnected()
         {
             if (nodes.Count == 0)
@@ -253,44 +250,76 @@ namespace Grafos
             return bridges;
         }
 
+        public List<Edge> GetEdges(Node node)
+        {
+            return edges.FindAll(edge => edge.Origem == node || edge.Destino == node);
+        }
+        
         public List<Edge> FindBridgesTarjam()
         {
-            int[] low = new int[nodes.Count];
-            int[] disc = new int[nodes.Count];
-            bool[] visited = new bool[nodes.Count];
-            int time = 0;
             List<Edge> bridges = new List<Edge>();
 
-            for(int i = 0; i < nodes.Count; i++)
+            TarjanBridges(bridges);
+
+            return bridges;
+        }
+        private void TarjanBridges(List<Edge> bridges)
+        {
+            int[] disc = new int[nodes.Count];
+            int[] low = new int[nodes.Count];
+            bool[] visited = new bool[nodes.Count];
+            int time = 0;
+
+            Stack<int> stack = new Stack<int>();
+
+            for (int i = 0; i < nodes.Count; i++)
             {
                 if (!visited[i])
                 {
-                    TarjamDFS(i, -1, ref time, low, disc, visited, bridges);
-                }
-            }
-            return bridges;
-        }
-        private void TarjamDFS(int u, int parent, ref int time, int[] low, int[] disc, bool[] visited, List<Edge> bridges)
-        {
-            visited[u] = true;
-            disc[u] = low[u] = ++time;
-
-            foreach(var edge in GetEdges(nodes[u]))
-            {
-                int v = nodes.IndexOf(edge.Destino);
-                if (!visited[v])
-                {
-                    TarjamDFS(v, u, ref time, low, disc, visited, bridges);
-                    low[u] = Math.Min(low[u], low[v]);
-
-                    if (low[v] > disc[u])
+                    stack.Push(i);
+                    int parent = -1;
+                    while (stack.Count > 0)
                     {
-                        bridges.Add(edge);
+                        int u = stack.Peek();
+                        if (!visited[u])
+                        {
+                            visited[u] = true;
+                            disc[u] = low[u] = ++time;
+
+                            foreach (var edge in GetEdges(nodes[u]))
+                            {
+                                int v = nodes.IndexOf(edge.Destino);
+                                if (v != -1 && !visited[v])
+                                {
+                                    stack.Push(v);
+                                    parent = u;
+                                }
+                                else if (v != -1 && v != parent)
+                                {
+                                    low[u] = Math.Min(low[u], disc[v]);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            stack.Pop();
+                            foreach (var edge in GetEdges(nodes[u]))
+                            {
+                                int v = nodes.IndexOf(edge.Destino);
+                                if (v != -1 && v != parent)
+                                {
+                                    low[u] = Math.Min(low[u], low[v]);
+                                    if (low[v] > disc[u])
+                                    {
+                                        lock (lockObj) {
+                                            bridges.Add(edge);
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-                else if(v != parent)
-                {
-                    low[u] = Math.Min(low[u], disc[v]);
                 }
             }
         }
@@ -314,14 +343,32 @@ namespace Grafos
         {
             visitedNodes.Add(node);
 
-            foreach(var edge in GetEdges(node))
+            foreach (var startNode in nodes)
             {
-                if (!visitedNodes.Contains(node))
+                if (!visitedNodes.Contains(startNode))
                 {
-                    visitedEdges.Add(edge);
-                    DFSHelper(edge.Destino, visitedNodes, visitedEdges);
+                    Stack<Node> stack = new Stack<Node>();
+                    stack.Push(startNode);
+
+                    while (stack.Count > 0)
+                    {
+                        var currentNode = stack.Pop();
+                        visitedNodes.Add(currentNode);
+
+                        foreach (var edge in GetEdges(currentNode))
+                        {
+                            Node destination = (edge.Origem == currentNode) ? edge.Destino : edge.Origem;
+
+                            if (!visitedNodes.Contains(destination))
+                            {
+                                visitedEdges.Add(edge);
+                                stack.Push(destination);
+                            }
+                        }
+                    }
                 }
             }
+            Console.WriteLine(node.Id);
         }
 
         public Node GetNodeById(Object id)
@@ -338,9 +385,11 @@ namespace Grafos
             {
                 Node node = new Node(i);
                 graph.AddNode(node);
+                Console.WriteLine(i);
             }
             for(int i = 0; i < edges; i++)
             {
+                Console.WriteLine(i);
                 Node destino = graph.GetNodeById(random.Next(nodes));
                 Node origem = graph.GetNodeById(random.Next(nodes));
                 int weight = random.Next(10000);
@@ -379,6 +428,7 @@ namespace Grafos
             {
                 foreach (Node node in nodes)
                 {
+                    Console.WriteLine(node.Id);
                     writer.Write(node.Id.ToString());
                     foreach (Edge edge in edges)
                     {
@@ -451,9 +501,155 @@ namespace Grafos
         {
             foreach(var edge in FindBridgesTarjam())
             {
-                Console.Write(edge.Origem.Id + " --> " + edge.Destino.Id);
+                Console.WriteLine(edge.Origem.Id + " --> " + edge.Destino.Id);
             }
         }
+
+
+        public List<Edge> FindBridgesTarjanMultithreaded()
+        {
+            List<Edge> bridges = new List<Edge>();
+
+            TarjanBridgesMult(bridges);
+
+            return bridges;
+        }
+
+        private void TarjanBridgesMult(List<Edge> bridges)
+        {
+            int[] disc = new int[nodes.Count];
+            int[] low = new int[nodes.Count];
+            bool[] visited = new bool[nodes.Count];
+            int time = 0;
+
+            Stack<int> stack = new Stack<int>();
+
+            object lockObj = new object(); // Objeto de bloqueio para sincronização
+
+            Parallel.ForEach(nodes, node =>
+            {
+                int u = nodes.IndexOf(node);
+                if (!visited[u])
+                {
+                    stack.Push(u);
+                    int parent = -1;
+                    while (stack.Count > 0)
+                    {
+                        int currentU;
+                        lock (lockObj)
+                        {
+                            if (stack.Count > 0)
+                            {
+                                currentU = stack.Peek();
+                                stack.Pop();
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                        if (!visited[currentU])
+                        {
+                            visited[currentU] = true;
+                            disc[currentU] = low[currentU] = Interlocked.Increment(ref time);
+
+                            foreach (var edge in GetEdges(nodes[currentU]))
+                            {
+                                int v = nodes.IndexOf(edge.Destino);
+                                if (v != -1 && !visited[v])
+                                {
+                                    stack.Push(v);
+                                    parent = currentU;
+                                }
+                                else if (v != -1 && v != parent)
+                                {
+                                    low[currentU] = Math.Min(low[currentU], disc[v]);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var edge in GetEdges(nodes[currentU]))
+                            {
+                                int v = nodes.IndexOf(edge.Destino);
+                                if (v != -1 && v != parent)
+                                {
+                                    low[currentU] = Math.Min(low[currentU], low[v]);
+                                    if (low[v] > disc[currentU])
+                                    {
+                                        lock (lockObj)
+                                        {
+                                            bridges.Add(edge);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        public static Graph GenerateRandomGraphMultithreaded(int nodes, int edges, int numThreads)
+        {
+            Graph graph = new Graph();
+            List<Thread> threads = new List<Thread>();
+            object lockObj = new object();
+
+            for (int i = 0; i < numThreads; i++)
+            {
+                Thread thread = new Thread(() =>
+                {
+                    Random random = new Random();
+                    for (int j = 0; j < nodes / numThreads; j++)
+                    {
+                        Node node = new Node(graph.nodes.Count + 1);
+                        lock (lockObj)
+                        {
+                            graph.AddNode(node);
+                        }
+                    }
+                    for (int k = 0; k < edges / numThreads; k++)
+                    {
+                        Node destino = graph.GetNodeById(random.Next(nodes));
+                        Node origem = graph.GetNodeById(random.Next(nodes));
+                        int weight = random.Next(10000);
+                        lock (lockObj)
+                        {
+                            graph.addEdge(origem, destino, weight);
+                        }
+                    }
+                });
+
+                threads.Add(thread);
+            }
+
+            // Inicia as threads
+            foreach (var thread in threads)
+            {
+                thread.Start();
+            }
+
+            // Aguarda todas as threads terminarem
+            foreach (var thread in threads)
+            {
+                thread.Join();
+            }
+
+            return graph;
+        }
+
+        public void printnodeid()
+        {
+            foreach (var node in nodes)
+            {
+                Console.WriteLine(node.Id.ToString()+"xx");
+            }
+        }
+
+
     }
 
 }

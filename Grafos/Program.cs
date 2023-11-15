@@ -1,11 +1,14 @@
 ﻿using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Grafos
 {
     internal class Program
     {
+
+        [LoaderOptimization(LoaderOptimization.MultiDomain)]
         static void Main(string[] args)
         {
             /*Node node1 = new Node("a");
@@ -82,10 +85,35 @@ namespace Grafos
             Console.WriteLine("usando tarjam: ");
             graph.printBridgestarjam();*/
 
-            Graph graph = Graph.GenerateRandomGraph(100,200);
-            graph.PrintBridgesNaive();
+            Stopwatch sw = new Stopwatch();
+            Stopwatch sw2 = new Stopwatch();
+            Stopwatch sw3 = new Stopwatch();
+            sw.Start();
+            //Graph graph = Graph.GenerateRandomGraph(10000,20000);
+            Graph graph = Graph.GenerateRandomGraphMultithreaded(100000, 200000, 20);
+            sw.Stop();
+            var tg = sw.Elapsed;
+            //graph.PrintBridgesNaive();
+            //sw2.Start();
+            //graph.FindBridgesTarjam();
+            //sw2.Stop();
+            //var tj = sw2.Elapsed;
+            sw3.Start();
+            graph.FindBridgesTarjanMultithreaded();
+            var tjt = sw3.Elapsed;
             //graph.GenerateXlsx();
-            graph.GetCSV();
+            //graph.GetCSV();
+            //sw.Restart();
+            //graph.FindBridgeNaive();
+            //sw.Stop();
+            //var tn = sw.Elapsed;
+            //graph.PrintBridgesNaive();
+            //graph.printBridgestarjam();
+
+            Console.WriteLine("tempo para criação do grafo de 100.000 vertices e 200.000 arestas: " + tg);
+            //Console.WriteLine("tempo de execução Naive: " + tn);
+            //Console.WriteLine("Tempo de execução tarjam: " + tj);
+            Console.WriteLine("Tempo de execução tarjan: " + tjt);
 
 
 
