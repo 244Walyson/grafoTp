@@ -13,6 +13,7 @@ namespace Grafos
     {
         private List<Node> nodes;
         private List<Edge> edges;
+        private List<Edge> uniqueEdges;
         public bool isDirected { get; set; }
         public int[,] adjacencyMatrix { get; set; }
 
@@ -21,6 +22,7 @@ namespace Grafos
         {
             nodes = new List<Node>();
             edges = new List<Edge>();
+            uniqueEdges = new List<Edge>();
             isDirected = directed;
         }
 
@@ -33,6 +35,7 @@ namespace Grafos
         {
             Edge newEdge = new Edge(origem, destino, peso);
             edges.Add(newEdge);
+            uniqueEdges.Add(newEdge);
             if (!isDirected)
             {
                 Edge inverseEdge = new Edge(destino, origem, peso);
@@ -45,7 +48,6 @@ namespace Grafos
         {
             adjacencyMatrix = new int[nodes.Count, nodes.Count];
 
-            Console.WriteLine(nodes.Count);
             for (int i = 0; i < nodes.Count; i++)
             {
                 for (int j = 0; j < nodes.Count; j++)
@@ -163,7 +165,7 @@ namespace Grafos
         public bool IsComplete()
         {
             int countNodes = CountNodes();
-            int countEdges = CountEdges() / 2;
+            int countEdges = CountEdges() / 4;
             int maxEdges = (countNodes * (countNodes - 1)) / 2;
 
             if (IsEmpty() || maxEdges < countEdges)
@@ -171,18 +173,22 @@ namespace Grafos
                 return false;
             }
 
-            for (int i = 0; i < nodes.Count - 1; i++)
+            foreach (Node node in nodes)
             {
-                for (int j = i + 1; j < nodes.Count; j++)
+                foreach (Node otherNode in nodes)
                 {
-                    if (!AreNodeAdjacency(nodes[i], nodes[j]))
+                    if (node != otherNode)
                     {
-                        return false;
+                        if (!ExistsEdge(node, otherNode))
+                        {
+                            return false;
+                        }
                     }
                 }
             }
             return true;
         }
+
 
         // Verifica se o grafo esta vazio
         public bool IsEmpty()
@@ -269,6 +275,10 @@ namespace Grafos
         // busca pontes usando tarjan
         private void TarjanBridgesMult(List<Edge> bridges)
         {
+            if (IsComplete())
+            {
+                return;
+            }
             int[] disc = new int[nodes.Count];
             int[] low = new int[nodes.Count];
             bool[] visited = new bool[nodes.Count];
@@ -392,11 +402,13 @@ namespace Grafos
             return graph;
         }
 
+
+
         // gera um grafo completo
         public static Graph GenerateCompleteGraph(int numNodes)
         {
             Graph graph = new Graph();
-            for (int i = 1; i <= numNodes; i++)
+            for (int i = 0; i < numNodes; i++)
             {
                 graph.AddNode(new Node(i));
             }
@@ -469,6 +481,10 @@ namespace Grafos
 
         public void PrintBridgesNaive()
         {
+            if (IsComplete())
+            {
+                return;
+            }
             if (isConnected())
             {
                 List<Edge> bridges = FindBridgeNaive();
@@ -541,93 +557,137 @@ namespace Grafos
             Process.Start(@"C:\Program Files\Gephi-0.10.1\bin\gephi64.exe");
         }
 
+        public List<Edge> UniqueEdges()
+        {
+            List<Edge> uniqueEdges = new List<Edge>();
+
+            foreach (Edge edge in edges)
+            {
+                bool exists = uniqueEdges.Any(e =>
+                    (e.Origem == edge.Origem && e.Destino == edge.Destino) ||
+                    (e.Origem == edge.Destino && e.Destino == edge.Origem));
+
+                if (!exists)
+                {
+                    uniqueEdges.Add(edge);
+                }
+            }
+
+            return uniqueEdges;
+        }
+
         public List<Node> Fleury()
         {
-            if (!isConnected() || CountOddNodes() > 2)
+            if (!isConnected())
             {
-                Console.WriteLine("não existe caminho euleriano possiivel");
+                Console.WriteLine("Grafo desconexo.");
                 return null;
             }
 
-            Node startNode = nodes.FirstOrDefault(node => GetEdges(node).Count % 2 != 0);
+            if (MoreThanThreeOddNodes())
+            {
+                Console.WriteLine("Existem mais de três vértices de grau ímpar, tornando impossível existir um caminho Euleriano.");
+                return null;
+            }
 
-            startNode = nodes.FirstOrDefault();
+            Graph tempGraph = new Graph();
+            tempGraph.nodes.AddRange(nodes);
+            tempGraph.edges.AddRange(uniqueEdges);
 
-            List<Node> euleryaCicle = new List<Node>();
+            List<Node> oddNodes = GetNodesWithOddDegree();
 
-            return euleryaCicle;
+            Node startNode = (oddNodes.Count > 0) ? oddNodes[0] : nodes[0];
 
+            List<Node> circuit = new List<Node>();
+            Stack<Node> stack = new Stack<Node>();
+            stack.Push(startNode);
+
+            while (stack.Count > 0)
+            {
+                Node currentNode = stack.Peek();
+                List<Edge> incidentEdges = tempGraph.GetEdges(currentNode);
+
+                incidentEdges = incidentEdges.Where(e => !IsBridge(tempGraph, e)).ToList();
+
+                if (incidentEdges.Count > 0)
+                {
+                    Edge chosenEdge = ChooseEdge(tempGraph, incidentEdges);
+
+                    Node nextNode = chosenEdge.Destino;
+
+                    tempGraph.removeEdge(currentNode, nextNode);
+
+                    stack.Push(nextNode);
+                }
+                else
+                {
+                    stack.Pop();
+                    circuit.Add(currentNode);
+                }
+            }
+
+            circuit.Reverse();
+            return circuit;
         }
 
-        public void FleuryRecursive(Node currentNode, List<Node> eulerianCycle)
+        private Edge ChooseEdge(Graph tempGraph, List<Edge> incidentEdges)
         {
-            List<Edge> edgesCopy = new List<Edge>(edges);
-
-            foreach (Edge edge in edgesCopy)
+            foreach (Edge edge in incidentEdges)
             {
                 Node nextNode = edge.Destino;
-                if (IsValidNextEdge(currentNode, nextNode))
+
+                if (!IsBridge(tempGraph, edge))
                 {
-                    removeEdge(currentNode, nextNode);
-                    eulerianCycle.Add(nextNode);
-                    FleuryRecursive(nextNode, eulerianCycle);
+                    return edge;
                 }
             }
-        }
-        public bool IsValidNextEdge(Node current, Node nextNode)
-        {
-            if (GetEdges(current).Count == 1)
-            {
-                return true;
-            }
-            if (IsBridge(current, nextNode))
-            {
-                return false;
-            }
-
-            Graph tempGraph = new Graph(isDirected);
-            tempGraph.nodes.AddRange(nodes);
-            tempGraph.edges.AddRange(edges);
-            tempGraph.removeEdge(current, nextNode);
-
-            if (!tempGraph.isConnected())
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public bool IsBridge(Node current, Node nextNode)
-        {
-            List<Edge> bridges = FindBridgesTarjan();
-
-            return bridges.Any(edge => (edge.Origem == current && edge.Destino == nextNode) || (edge.Origem == nextNode && edge.Destino == current));
+            return incidentEdges[0];
         }
 
 
-        public int CountOddNodes()
+        private List<Node> GetNodesWithOddDegree()
         {
-            int count = 0;
-
+            List<Node> oddNodes = new List<Node>();
             foreach (Node node in nodes)
             {
-                int edgeCount = edges.Count(edge => edge.Origem == node || edge.Destino == node);
-
-                if (!isDirected)
+                if (GetEdges(node).Count % 2 != 0)
                 {
-                    edgeCount = edgeCount / 2;
-                }
-
-                if (edgeCount % 2 != 0)
-                {
-                    count++;
+                    oddNodes.Add(node);
                 }
             }
-
-            return count;
+            return oddNodes;
         }
 
+        private bool MoreThanThreeOddNodes()
+        {
+            int oddDegreeCount = 0;
+            foreach (Node node in nodes)
+            {
+                if (GetEdges(node).Count % 2 != 0)
+                {
+                    oddDegreeCount++;
+                }
+            }
+            return oddDegreeCount > 3;
+        }
 
+        private bool IsBridge(Graph tempGraph, Edge edge)
+        {
+            tempGraph.removeEdge(edge.Origem, edge.Destino);
+            bool isConnected = tempGraph.isConnected();
+            tempGraph.AddEdge(edge.Origem, edge.Destino, edge.Peso);
+
+            return !isConnected;
+        }
+
+        public void printedges()
+        {
+            foreach (Edge edge in uniqueEdges)
+            {
+                Console.WriteLine(edge.Origem.Id + "---" + edge.Destino.Id);
+            }
+        }
     }
+
 }
+
