@@ -431,12 +431,15 @@ namespace Grafos
         {
             Graph graph = new Graph();
 
-            object lockObj = new object();  
+            object lockObj = new object();
 
             Parallel.For(0, numVertices, i =>
             {
                 Node node = new Node(i);
-                graph.AddNode(node);
+                lock (lockObj) {
+                    graph.AddNode(node);
+
+                }
             });
 
             Parallel.For(0, numVertices, i =>
@@ -450,16 +453,17 @@ namespace Grafos
                 {
                     nextIndex += numVertices;
                 }
-
                 nextNode = graph.GetNodeById(nextIndex);
 
-                lock (lockObj)
+                lock (lockObj) // Synchronization using a lock
                 {
                     graph.AddEdge(node, nextNode);
                 }
             });
+
             return graph;
         }
+
 
         //-----------------------------------------PRINT METHODS-------------------------------------------------
 
@@ -716,6 +720,17 @@ namespace Grafos
             tempGraph.AddEdge(edge.Origem, edge.Destino, edge.Peso);
 
             return !isConnected;
+        }
+
+        public static void MeasureExecutionTime(Action method, String methodName)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            method();
+
+            stopwatch.Stop();
+
+            Console.WriteLine("Tempo de execução do método " + methodName + " : "+  stopwatch.ElapsedMilliseconds);
         }
 
         public void printedges()
