@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.EMMA;
 
 namespace Grafos
 {
@@ -426,6 +427,39 @@ namespace Grafos
             return graph;
         }
 
+        public static Graph GenerateConnectedGraph(int numVertices)
+        {
+            Graph graph = new Graph();
+
+            object lockObj = new object();  
+
+            Parallel.For(0, numVertices, i =>
+            {
+                Node node = new Node(i);
+                graph.AddNode(node);
+            });
+
+            Parallel.For(0, numVertices, i =>
+            {
+                Node node = graph.GetNodeById(i);
+                Node nextNode = graph.GetNodeById((i + 1) % numVertices);
+
+                int nextIndex = (i + 1) % numVertices;
+
+                if (nextIndex < 0)
+                {
+                    nextIndex += numVertices;
+                }
+
+                nextNode = graph.GetNodeById(nextIndex);
+
+                lock (lockObj)
+                {
+                    graph.AddEdge(node, nextNode);
+                }
+            });
+            return graph;
+        }
 
         //-----------------------------------------PRINT METHODS-------------------------------------------------
 
@@ -576,6 +610,10 @@ namespace Grafos
             return uniqueEdges;
         }
 
+        public List<Edge> GetEdgesOrigin(Node node)
+        {
+            return edges.FindAll(e => e.Origem == node);
+        }
         public List<Node> Fleury()
         {
             if (!isConnected())
@@ -605,13 +643,22 @@ namespace Grafos
             while (stack.Count > 0)
             {
                 Node currentNode = stack.Peek();
-                List<Edge> incidentEdges = tempGraph.GetEdges(currentNode);
-
-                incidentEdges = incidentEdges.Where(e => !IsBridge(tempGraph, e)).ToList();
+                List<Edge> incidentEdges = tempGraph.GetEdgesOrigin(currentNode);
 
                 if (incidentEdges.Count > 0)
                 {
-                    Edge chosenEdge = ChooseEdge(tempGraph, incidentEdges);
+                    Edge chosenEdge = null;
+                    foreach (Edge edge in incidentEdges)
+                    {
+                        if (!IsBridge(tempGraph, edge))
+                        {
+                            chosenEdge = edge;
+                        }
+                    }
+                    if (chosenEdge == null)
+                    {
+                        chosenEdge = incidentEdges[0];
+                    }
 
                     Node nextNode = chosenEdge.Destino;
 
@@ -630,27 +677,18 @@ namespace Grafos
             return circuit;
         }
 
-        private Edge ChooseEdge(Graph tempGraph, List<Edge> incidentEdges)
+
+        public List<Edge> GetUniqueEdges(Node node)
         {
-            foreach (Edge edge in incidentEdges)
-            {
-                Node nextNode = edge.Destino;
-
-                if (!IsBridge(tempGraph, edge))
-                {
-                    return edge;
-                }
-            }
-            return incidentEdges[0];
+            List<Edge> unique = UniqueEdges();
+            return edges.FindAll(edge => edge.Origem == node || edge.Destino == node);
         }
-
-
         private List<Node> GetNodesWithOddDegree()
         {
             List<Node> oddNodes = new List<Node>();
             foreach (Node node in nodes)
             {
-                if (GetEdges(node).Count % 2 != 0)
+                if (GetUniqueEdges(node).Count % 2 != 0)
                 {
                     oddNodes.Add(node);
                 }
@@ -682,7 +720,7 @@ namespace Grafos
 
         public void printedges()
         {
-            foreach (Edge edge in uniqueEdges)
+            foreach (Edge edge in edges)
             {
                 Console.WriteLine(edge.Origem.Id + "---" + edge.Destino.Id);
             }

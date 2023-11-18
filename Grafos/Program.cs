@@ -153,7 +153,7 @@ namespace Grafos
                Console.WriteLine(node.Id);
            }*/
 
-            Graph graph = Graph.GenerateCompleteGraph(5);
+            Graph graph = Graph.GenerateConnectedGraph(10);
 
             /*Node a = new Node("A");
             Node b = new Node("B");
@@ -171,8 +171,9 @@ namespace Grafos
             graph.AddEdge(d, a);*/
 
             //graph.printGraph(); // Para visualizar o grafo criado
-            graph.printMatrix();
+            //graph.printMatrix();
             graph.printedges();
+            //graph.GetCSV();
             //Console.WriteLine(graph.CountEdges());
 
             List<Node> eulerianCycle = graph.Fleury();
