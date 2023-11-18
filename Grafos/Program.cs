@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.EMMA;
-using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
+﻿using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Diagnostics;
 using System.Threading;
@@ -154,38 +153,26 @@ namespace Grafos
                Console.WriteLine(node.Id);
            }*/
 
-            Graph graph = new Graph(); //Graph.GenerateCompleteGraph(11);
+            Graph graph = Graph.GenerateCompleteGraph(5);
 
-            Node a1 = new Node("1");
-            Node b2 = new Node("2");
-            Node c3 = new Node("3");
-            Node d4 = new Node("4");
-            Node e5 = new Node("5");
-            Node f6 = new Node("6");
-            Node f7 = new Node("6");
+            /*Node a = new Node("A");
+            Node b = new Node("B");
+            Node c = new Node("C");
+            Node d = new Node("D");
 
-            graph.AddNode(a1);
-            graph.AddNode(b2);
-            graph.AddNode(c3);
-            graph.AddNode(d4);
-            graph.AddNode(e5);
-            graph.AddNode(f6);
+            graph.AddNode(a);
+            graph.AddNode(b);
+            graph.AddNode(c);
+            graph.AddNode(d);
 
-            graph.AddEdge(a1, b2);
-            graph.AddEdge(a1, c3);
-            graph.AddEdge(b2, e5);
-            graph.AddEdge(b2, d4);
-            graph.AddEdge(b2, c3);
-            graph.AddEdge(c3, d4);
-            graph.AddEdge(c3, f6);
-            graph.AddEdge(d4, f6);
-            graph.AddEdge(d4, e5);
-            graph.AddEdge(e5, f6);
+            graph.AddEdge(a, b);
+            graph.AddEdge(b, c);
+            graph.AddEdge(c, d);
+            graph.AddEdge(d, a);*/
 
             //graph.printGraph(); // Para visualizar o grafo criado
             graph.printMatrix();
-            graph.printedges(); ;
-            
+            graph.printedges();
             //Console.WriteLine(graph.CountEdges());
 
             List<Node> eulerianCycle = graph.Fleury();
@@ -193,15 +180,9 @@ namespace Grafos
             Console.WriteLine("caminho euleriano");
             if (eulerianCycle != null)
             {
-                int i = 1;
                 foreach (Node node in eulerianCycle)
                 {
-                    Console.Write(node.Id);
-                    if(i % 2 == 0)
-                    {
-                        Console.Write(" ");
-                    }
-                    i++;
+                    Console.Write(node.Id + " ");
                 }
             }
             
