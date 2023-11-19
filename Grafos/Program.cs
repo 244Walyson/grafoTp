@@ -155,7 +155,7 @@ namespace Grafos
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            Graph graph = Graph.GenerateConnectedGraph(100);
+            Graph graph = Graph.GenerateConnectedGraph(100000);
             sw.Stop();
 
             graph.PrintAdjacencyList();
@@ -169,10 +169,10 @@ namespace Grafos
             Stopwatch sw2 = new Stopwatch();
 
             sw2.Start();
-            List<Node> eulerianCycle = graph.Fleury();
+            List<Node> eulerianCycle = graph.FleuryNaive();
             sw2.Stop();
-            Console.WriteLine("Tempo de execução do Fleury com naive " + sw2.Elapsed);
-            Console.WriteLine("Tempo de criação do grafo " + sw.Elapsed);
+            Console.WriteLine("Tempo de criação do grafo com 100000 vértices: " + sw.Elapsed);
+            Console.WriteLine("Tempo de execução do Fleury com Naive: " + sw2.Elapsed);
 
 
             Console.WriteLine("caminho euleriano");

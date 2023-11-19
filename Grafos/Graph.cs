@@ -122,10 +122,16 @@ namespace Grafos
         }
 
         // Adição de Rotulo as arestas
-        public void addEdgeLabel(Node node1, Node node2, Object label)
+        public void AddEdgeLabel(Node node1, Node node2, Object label)
         {
             Edge edge = edges.Find(edge => (edge.Origem == node1 && edge.Destino == node2) || (edge.Origem == node2 && edge.Destino == node1));
             edge.addLabel(label);
+        }
+
+        public void AddNodeLabel(Node node, Object label)
+        {
+            Node nodey = nodes.Find(nodex => nodex.Id == node.Id);
+
         }
 
         public void removeEdge(Node source, Node destiny)
@@ -651,7 +657,7 @@ namespace Grafos
             return edges.FindAll(e => e.Origem == node);
         }
 
-        public List<Node> Fleury()
+        public List<Node> FleuryTarjan()
         {
             /*if (!isConnected())
             {
@@ -730,6 +736,84 @@ namespace Grafos
             return circuit;
         }
 
+        public List<Node> FleuryNaive()
+        {
+            /*if (!isConnected())
+            {
+                Console.WriteLine("Grafo desconexo.");
+                return null;
+            }
+            if (MoreThanThreeOddNodes())
+            {
+                Console.WriteLine("Existem mais de três vértices de grau ímpar, tornando impossível existir um caminho Euleriano.");
+                return null;
+            }*/
+
+            Console.WriteLine("aaqqi");
+            Graph tempGraph = new Graph();
+            Stopwatch sw = Stopwatch.StartNew();
+            sw.Start();
+            tempGraph.nodes.AddRange(nodes);
+            tempGraph.edges.AddRange(uniqueEdges);
+            sw.Stop();
+
+            Console.WriteLine(sw.Elapsed);
+            sw.Restart();
+            Console.WriteLine("xxxx");
+            //List<Node> oddNodes = GetNodesWithOddDegree();
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
+
+
+            //Node startNode = (oddNodes.Count > 0) ? oddNodes[0] : nodes[0];
+            Node startNode = nodes[0];
+            List<Node> circuit = new List<Node>();
+            Stack<Node> stack = new Stack<Node>();
+            stack.Push(startNode);
+
+            while (stack.Count > 0)
+            {
+                Node currentNode = stack.Peek();
+                Console.WriteLine(currentNode.Id);
+                sw.Restart();
+                List<Edge> incidentEdges = tempGraph.GetEdgesOrigin(currentNode);
+
+
+                if (incidentEdges.Count > 0)
+                {
+                    Edge chosenEdge = null;
+
+                    foreach (Edge edge in incidentEdges)
+                    {
+                        if (!IsBridgeNaive(tempGraph, edge))
+                        {
+                            chosenEdge = edge;
+                            break;
+                        }
+                    }
+                    if (chosenEdge == null)
+                    {
+                        chosenEdge = incidentEdges[0];
+                    }
+
+                    Node nextNode = chosenEdge.Destino;
+
+                    tempGraph.removeEdge(currentNode, nextNode);
+
+                    stack.Push(nextNode);
+                    sw.Stop();
+                    Console.WriteLine(sw.Elapsed);
+                }
+                else
+                {
+                    stack.Pop();
+                    circuit.Add(currentNode);
+                }
+            }
+
+            circuit.Reverse();
+            return circuit;
+        }
 
         public List<Edge> GetUniqueEdges(Node node)
         {
@@ -762,12 +846,23 @@ namespace Grafos
             return oddDegreeCount > 3;
         }
 
-        private bool IsBridge(Graph tempGraph, Edge edge)
+        private void AddEdgeNaive(Node origem, Node destino, int peso = 1)
+        {
+            Edge newEdge = new Edge(origem, destino, peso);
+            edges.Add(newEdge);
+            uniqueEdges.Add(newEdge);
+
+            if (!isDirected)
+            {
+                Edge inverseEdge = new Edge(destino, origem, peso);
+                edges.Add(inverseEdge);
+            }
+        }
+        private bool IsBridgeNaive(Graph tempGraph, Edge edge)
         {
             tempGraph.removeEdge(edge.Origem, edge.Destino);
             bool isConnected = tempGraph.isConnected();
-            tempGraph.AddEdge(edge.Origem, edge.Destino, edge.Peso);
-
+            tempGraph.AddEdgeNaive(edge.Origem, edge.Destino);
             return !isConnected;
         }
         
