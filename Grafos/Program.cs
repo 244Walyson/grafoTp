@@ -155,33 +155,16 @@ namespace Grafos
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            Graph graph = Graph.GenerateConnectedGraph(10000);
+            Graph graph = Graph.GenerateConnectedGraph(100);
             sw.Stop();
 
-
-            //Graph.MeasureExecutionTime(, "")
-            /*Node a = new Node("A");
-            Node b = new Node("B");
-            Node c = new Node("C");
-            Node d = new Node("D");
-
-            graph.AddNode(a);
-            graph.AddNode(b);
-            graph.AddNode(c);
-            graph.AddNode(d);
-
-            graph.AddEdge(a, b);
-            graph.AddEdge(b, c);
-            graph.AddEdge(c, d);
-            graph.AddEdge(d, a);*/
-
+            graph.PrintAdjacencyList();
             //graph.printGraph(); // Para visualizar o grafo criado
             //graph.printMatrix();
-            graph.printedges();
+            //graph.printedges();
             //graph.GetCSV();
             //Console.WriteLine(graph.CountEdges());
 
-            Console.WriteLine("Tempo de criação do grafo " + sw.Elapsed);
 
             Stopwatch sw2 = new Stopwatch();
 
@@ -189,6 +172,8 @@ namespace Grafos
             List<Node> eulerianCycle = graph.Fleury();
             sw2.Stop();
             Console.WriteLine("Tempo de execução do Fleury com naive " + sw2.Elapsed);
+            Console.WriteLine("Tempo de criação do grafo " + sw.Elapsed);
+
 
             Console.WriteLine("caminho euleriano");
             if (eulerianCycle != null)

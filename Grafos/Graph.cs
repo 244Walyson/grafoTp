@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.EMMA;
+using System.Xml.Linq;
 
 namespace Grafos
 {
@@ -15,6 +16,7 @@ namespace Grafos
         private List<Node> nodes;
         private List<Edge> edges;
         private List<Edge> uniqueEdges;
+        private Dictionary<Node, List<Node>> adjacencyList;
         public bool isDirected { get; set; }
         public int[,] adjacencyMatrix { get; set; }
 
@@ -23,13 +25,14 @@ namespace Grafos
         {
             nodes = new List<Node>();
             edges = new List<Edge>();
+            adjacencyList = new Dictionary<Node, List<Node>>();
             uniqueEdges = new List<Edge>();
             isDirected = directed;
         }
-
         public void AddNode(Node node)
         {
             nodes.Add(node);
+            adjacencyList.Add(node, new List<Node>());
         }
 
         public void AddEdge(Node origem, Node destino, int peso = 1)
@@ -37,10 +40,37 @@ namespace Grafos
             Edge newEdge = new Edge(origem, destino, peso);
             edges.Add(newEdge);
             uniqueEdges.Add(newEdge);
+            adjacencyList[origem].Add(destino);
+
             if (!isDirected)
             {
                 Edge inverseEdge = new Edge(destino, origem, peso);
                 edges.Add(inverseEdge);
+                adjacencyList[destino].Add(origem);
+            }
+        }
+
+        public Dictionary<Node, List<Node>> GetAdjacencyList()
+        {
+            return adjacencyList;
+        }
+
+
+        public void PrintAdjacencyList()
+        {
+            foreach (var entry in adjacencyList)
+            {
+                Node node = entry.Key;
+                List<Node> neighbors = entry.Value;
+
+                Console.Write($"{node.Id}: ");
+
+                foreach (var neighbor in neighbors)
+                {
+                    Console.Write($"{neighbor.Id} ");
+                }
+
+                Console.WriteLine();
             }
         }
 
@@ -440,10 +470,12 @@ namespace Grafos
                     graph.AddNode(node);
 
                 }
+                Console.WriteLine("n");
             });
 
             Parallel.For(0, numVertices, i =>
             {
+                Console.WriteLine("e");
                 Node node = graph.GetNodeById(i);
                 Node nextNode = graph.GetNodeById((i + 1) % numVertices);
 
@@ -455,7 +487,7 @@ namespace Grafos
                 }
                 nextNode = graph.GetNodeById(nextIndex);
 
-                lock (lockObj) // Synchronization using a lock
+                lock (lockObj)
                 {
                     graph.AddEdge(node, nextNode);
                 }
@@ -618,28 +650,38 @@ namespace Grafos
         {
             return edges.FindAll(e => e.Origem == node);
         }
+
         public List<Node> Fleury()
         {
-            if (!isConnected())
+            /*if (!isConnected())
             {
                 Console.WriteLine("Grafo desconexo.");
                 return null;
             }
-
             if (MoreThanThreeOddNodes())
             {
                 Console.WriteLine("Existem mais de três vértices de grau ímpar, tornando impossível existir um caminho Euleriano.");
                 return null;
-            }
+            }*/
 
+            Console.WriteLine("aaqqi");
             Graph tempGraph = new Graph();
+            Stopwatch sw = Stopwatch.StartNew();
+            sw.Start();
             tempGraph.nodes.AddRange(nodes);
             tempGraph.edges.AddRange(uniqueEdges);
+            sw.Stop();
 
-            List<Node> oddNodes = GetNodesWithOddDegree();
+            Console.WriteLine(sw.Elapsed);
+            sw.Restart();
+            Console.WriteLine("xxxx");
+            //List<Node> oddNodes = GetNodesWithOddDegree();
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
 
-            Node startNode = (oddNodes.Count > 0) ? oddNodes[0] : nodes[0];
 
+            //Node startNode = (oddNodes.Count > 0) ? oddNodes[0] : nodes[0];
+            Node startNode = nodes[0];
             List<Node> circuit = new List<Node>();
             Stack<Node> stack = new Stack<Node>();
             stack.Push(startNode);
@@ -647,16 +689,21 @@ namespace Grafos
             while (stack.Count > 0)
             {
                 Node currentNode = stack.Peek();
+                Console.WriteLine(currentNode.Id);
+                sw.Restart();
                 List<Edge> incidentEdges = tempGraph.GetEdgesOrigin(currentNode);
+
 
                 if (incidentEdges.Count > 0)
                 {
                     Edge chosenEdge = null;
+
                     foreach (Edge edge in incidentEdges)
                     {
-                        if (!IsBridge(tempGraph, edge))
+                        if (!IsBridgeTarjan(tempGraph, edge))
                         {
                             chosenEdge = edge;
+                            break;
                         }
                     }
                     if (chosenEdge == null)
@@ -669,6 +716,8 @@ namespace Grafos
                     tempGraph.removeEdge(currentNode, nextNode);
 
                     stack.Push(nextNode);
+                    sw.Stop();
+                    Console.WriteLine(sw.Elapsed);
                 }
                 else
                 {
@@ -720,6 +769,12 @@ namespace Grafos
             tempGraph.AddEdge(edge.Origem, edge.Destino, edge.Peso);
 
             return !isConnected;
+        }
+        
+        private bool IsBridgeTarjan(Graph graph, Edge edge)
+        {
+            List<Edge> ed = graph.FindBridgesTarjan();
+            return ed.Any(e => e.Equals(edge));
         }
 
         public static void MeasureExecutionTime(Action method, String methodName)
