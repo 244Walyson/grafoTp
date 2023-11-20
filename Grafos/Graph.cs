@@ -389,6 +389,7 @@ namespace Grafos
                 }
             });
         }
+
         public List<Edge> FindBridgesTarjan()
         {
             List<Edge> bridges = new List<Edge>();
@@ -860,12 +861,32 @@ namespace Grafos
         }
         private bool IsBridgeNaive(Graph tempGraph, Edge edge)
         {
+            int initialComponents = CountComponents(tempGraph); // Obtem o número inicial de componentes
             tempGraph.removeEdge(edge.Origem, edge.Destino);
             bool isConnected = tempGraph.isConnected();
+            int currentComponents = CountComponents(tempGraph); // Obtem o número de componentes após a remoção
+
             tempGraph.AddEdgeNaive(edge.Origem, edge.Destino);
-            return !isConnected;
+
+            return currentComponents > initialComponents && !isConnected;
         }
-        
+
+        private int CountComponents(Graph graph)
+        {
+            int k = 0;
+
+            // Itera sobre todos os vértices do grafo de forma paralela
+            Parallel.ForEach(graph.nodes, node =>
+            {
+                if (graph.GetEdges(node).Count == 0)
+                {
+                    Interlocked.Increment(ref k);
+                }
+            });
+
+            return k;
+        }
+
         private bool IsBridgeTarjan(Graph graph, Edge edge)
         {
             List<Edge> ed = graph.FindBridgesTarjan();
