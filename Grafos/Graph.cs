@@ -49,6 +49,15 @@ namespace Grafos
                 adjacencyList[destino].Add(origem);
             }
         }
+        public void AddEdgeWithNodeId(Object origem, Object destino, int peso = 1 )
+        {
+            AddEdge(GetNodeById(origem), GetNodeById(destino), peso);
+        }
+
+        public void AddEdgeWeight(int peso, Node origem, Node destino)
+        {
+            edges.Find(e => e.Origem == origem && e.Destino == destino || e.Destino == origem && e.Origem == destino).Peso = peso;
+        }
 
         public Dictionary<Node, List<Node>> GetAdjacencyList()
         {
@@ -153,6 +162,7 @@ namespace Grafos
         public void removeNode(Node node)
         {
             nodes.Remove(node);
+            adjacencyList.Remove(node);
         }
 
         public bool AreNodeAdjacency(Node source, Node destiny)
@@ -189,6 +199,10 @@ namespace Grafos
         // Quantidade de arestas
         public int CountEdges()
         {
+            if (!isDirected)
+            {
+                return edges.Count / 2;
+            }
             return edges.Count;
         }
 
@@ -477,12 +491,10 @@ namespace Grafos
                     graph.AddNode(node);
 
                 }
-                Console.WriteLine("n");
             });
 
             Parallel.For(0, numVertices, i =>
             {
-                Console.WriteLine("e");
                 Node node = graph.GetNodeById(i);
                 Node nextNode = graph.GetNodeById((i + 1) % numVertices);
 
@@ -671,7 +683,6 @@ namespace Grafos
                 return null;
             }*/
 
-            Console.WriteLine("aaqqi");
             Graph tempGraph = new Graph();
             Stopwatch sw = Stopwatch.StartNew();
             sw.Start();
@@ -681,7 +692,6 @@ namespace Grafos
 
             Console.WriteLine(sw.Elapsed);
             sw.Restart();
-            Console.WriteLine("xxxx");
             //List<Node> oddNodes = GetNodesWithOddDegree();
             sw.Stop();
             Console.WriteLine(sw.Elapsed);
@@ -750,7 +760,6 @@ namespace Grafos
                 return null;
             }*/
 
-            Console.WriteLine("aaqqi");
             Graph tempGraph = new Graph();
             Stopwatch sw = Stopwatch.StartNew();
             sw.Start();
@@ -760,7 +769,6 @@ namespace Grafos
 
             Console.WriteLine(sw.Elapsed);
             sw.Restart();
-            Console.WriteLine("xxxx");
             //List<Node> oddNodes = GetNodesWithOddDegree();
             sw.Stop();
             Console.WriteLine(sw.Elapsed);
@@ -861,30 +869,13 @@ namespace Grafos
         }
         private bool IsBridgeNaive(Graph tempGraph, Edge edge)
         {
-            int initialComponents = CountComponents(tempGraph); // Obtem o número inicial de componentes
+            int initialComponents = tempGraph.CountComponents();
             tempGraph.removeEdge(edge.Origem, edge.Destino);
-            bool isConnected = tempGraph.isConnected();
-            int currentComponents = CountComponents(tempGraph); // Obtem o número de componentes após a remoção
+            int currentComponents = tempGraph.CountComponents();
 
             tempGraph.AddEdgeNaive(edge.Origem, edge.Destino);
 
-            return currentComponents > initialComponents && !isConnected;
-        }
-
-        private int CountComponents(Graph graph)
-        {
-            int k = 0;
-
-            // Itera sobre todos os vértices do grafo de forma paralela
-            Parallel.ForEach(graph.nodes, node =>
-            {
-                if (graph.GetEdges(node).Count == 0)
-                {
-                    Interlocked.Increment(ref k);
-                }
-            });
-
-            return k;
+            return currentComponents > initialComponents;
         }
 
         private bool IsBridgeTarjan(Graph graph, Edge edge)
@@ -904,13 +895,143 @@ namespace Grafos
             Console.WriteLine("Tempo de execução do método " + methodName + " : "+  stopwatch.ElapsedMilliseconds);
         }
 
-        public void printedges()
+
+        public int CountComponents()
         {
-            foreach (Edge edge in edges)
+            int count = 0;
+            HashSet<Node> visited = new HashSet<Node>();
+
+            foreach (Node node in nodes)
             {
-                Console.WriteLine(edge.Origem.Id + "---" + edge.Destino.Id);
+                if (!visited.Contains(node))
+                {
+                    DFSCountComponents(node, visited);
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private void DFSCountComponents(Node node, HashSet<Node> visited)
+        {
+            visited.Add(node);
+
+            foreach (Edge edge in GetEdges(node))
+            {
+                if (!visited.Contains(edge.Destino))
+                {
+                    DFSCountComponents(edge.Destino, visited);
+                }
             }
         }
+
+        public static Graph ReadCSV(string filePath)
+        {
+            Graph graph = new Graph();
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        string[] values = line.Split(';');
+
+                        if (values.Length > 0)
+                        {
+                            int nodeId = int.Parse(values[0]);
+                            Node node = graph.GetNodeById(nodeId);
+
+                            if (node == null)
+                            {
+                                node = new Node(nodeId);
+                                graph.AddNode(node);
+                            }
+
+                            for (int i = 1; i < values.Length; i++)
+                            {
+                                int neighborId = int.Parse(values[i].Trim());
+                                Node neighbor = graph.GetNodeById(neighborId);
+
+                                if (neighbor == null)
+                                {
+                                    neighbor = new Node(neighborId);
+                                    graph.AddNode(neighbor);
+                                }
+
+                                graph.AddEdge(node, neighbor);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error reading CSV file: " + ex.Message);
+            }
+
+            return graph;
+        }
+
+        public List<Edge> FindBridgesTarjanRec()
+        {
+            List<Edge> bridges = new List<Edge>();
+
+            int[] disc = new int[nodes.Count];
+            int[] low = new int[nodes.Count];
+            bool[] visited = new bool[nodes.Count];
+            int time = 0;
+
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (!visited[i])
+                {
+                    TarjanBridgesRecursive(i, -1, disc, low, visited, bridges, ref time);
+                }
+            }
+
+            return bridges;
+        }
+
+        private void TarjanBridgesRecursive(int u, int parent, int[] disc, int[] low, bool[] visited, List<Edge> bridges, ref int time)
+        {
+            visited[u] = true;
+            disc[u] = low[u] = ++time;
+
+            foreach (var edge in GetEdges(nodes[u]))
+            {
+                int v = nodes.IndexOf(edge.Destino);
+
+                if (!visited[v])
+                {
+                    TarjanBridgesRecursive(v, u, disc, low, visited, bridges, ref time);
+
+                    low[u] = Math.Min(low[u], low[v]);
+
+                    if (low[v] > disc[u])
+                    {
+                        bridges.Add(edge);
+                    }
+                }
+                else if (v != parent)
+                {
+                    low[u] = Math.Min(low[u], disc[v]);
+                }
+            }
+        }
+
+        public static Graph GraphWithXVertices(int x)
+        {
+            Graph graph = new Graph();
+            for (int i = 0; i < x; i++)
+            {
+                Node node = new Node(i);
+                graph.AddNode(node);
+            }
+            return graph;
+        } 
     }
 
 }

@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
+using DocumentFormat.OpenXml.Office2016.Drawing.Command;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Diagnostics;
 using System.Threading;
@@ -11,12 +12,87 @@ namespace Grafos
         [LoaderOptimization(LoaderOptimization.MultiDomain)]
         static void Main(string[] args)
         {
-            /* Node node1 = new Node("a");
-             Node node2 = new Node("b");
-             Node node3 = new Node("c");
-             Node node4 = new Node("d");
-             Node teste = new Node("t");
 
+            Graph graph = Graph.GraphWithXVertices(5);
+            Graph graphEmpt = new Graph();
+            Graph graphComplet = Graph.GenerateCompleteGraph(5);
+
+
+            graph.printAdjacencyMatrix();
+            graph.PrintAdjacencyList();
+
+            Console.WriteLine("criação da aresta 1 --> 2: ");
+            graph.AddEdgeWithNodeId(1,2);
+            graph.AddEdgeWithNodeId(2,4);
+            graph.PrintAdjacencyList();
+            Console.WriteLine("ponderação da aresta 1 --> 2 com peso 5");
+            graph.AddEdgeWeight(5, graph.GetNodeById(1), graph.GetNodeById(2));
+            graph.printAdjacencyMatrix();
+            Console.WriteLine("rotulação da aresta 1 --> 2 para aresta1-2: ");
+            graph.AddEdgeLabel(graph.GetNodeById(1), graph.GetNodeById(2), "aresta1-2");
+            Console.WriteLine("rotulação da aresta 4 --> 2 para aresta4-2: ");
+            graph.AddEdgeLabel(graph.GetNodeById(4), graph.GetNodeById(2), "aresta4-2");
+            Console.WriteLine("Rotulação do vertice 2: ");
+            graph.AddNodeLabel(graph.GetNodeById(2), "dois");
+            Console.Write("checagem de adjacencia entre os vertices 1 e 2: ");
+            Console.WriteLine(graph.AreNodeAdjacency(graph.GetNodeById(1), graph.GetNodeById(2)));
+            Console.Write("checagem de adjacencia entre os vertices 3 e 4: ");
+            Console.WriteLine(graph.AreNodeAdjacency(graph.GetNodeById(3), graph.GetNodeById(4)));
+            Console.Write("checagem de adjacencia das arestas  1 --> 2 e 3 --> 2: ");
+            Console.WriteLine(graph.AreEdgesAdjacent("aresta1-2", "aresta4-2"));
+            Console.Write("checagem da existencia da aresta 3 --> 2: ");
+            Console.WriteLine(graph.ExistsEdge(graph.GetNodeById(3), graph.GetNodeById(2)));
+            Console.Write("checagem da existencia da aresta 4 --> 2: ");
+            Console.WriteLine(graph.ExistsEdge(graph.GetNodeById(4), graph.GetNodeById(2)));
+            Console.Write("Qunatidade de vertices: ");
+            Console.WriteLine(graph.CountNodes());
+            Console.Write("Quantidade de arestas: ");
+            Console.WriteLine(graph.CountEdges());
+            Console.Write("checagem se o grafo 1 está vazio: ");
+            Console.WriteLine(graph.IsEmpty());
+            Console.Write("checagem se o grafo 1 é completo: ");
+            Console.WriteLine(graph.IsComplete());
+            Console.Write("checagem se o grafo 2 está vazio: ");
+            Console.WriteLine(graphEmpt.IsEmpty());
+            Console.Write("checagem se o grafo 2 é completo: ");
+            Console.WriteLine(graphEmpt.IsComplete());
+            Console.Write("checagem se o grafo 3 está vazio: ");
+            Console.WriteLine(graphComplet.IsEmpty());
+            Console.Write("checagem se o grafo 3 é completo: ");
+            Console.WriteLine(graphComplet.IsComplete());
+            graphComplet.printAdjacencyMatrix();
+
+            //entrega 2
+            Graph graphSend2 = Graph.GenerateConnectedGraph(10);
+            Node node = new Node(100);
+            graphSend2.AddNode(node);
+            graphSend2.AddEdge(node, graphSend2.GetNodeById(1));
+            Console.WriteLine("Verificando pontes com Naive: ");
+            graphSend2.PrintBridgesNaive();
+            Console.WriteLine("Verificando pontes com Tarjan");
+            foreach(Edge vert in graphSend2.FindBridgesTarjanRec())
+            {
+                Console.WriteLine(vert.Origem.Id + " --> " + vert.Destino.Id);
+            }
+            graphSend2.removeEdge(graphSend2.GetNodeById(100), graphSend2.GetNodeById(1));
+            graphSend2.removeNode(graphSend2.GetNodeById(100));
+
+            List<Node> nodes = graphSend2.FleuryNaive();
+            List<Node> nodest = graphSend2.FleuryTarjan();
+            Console.WriteLine("caminho euleriano Naive: ");
+            foreach (Node n in nodes)
+            {
+                Console.Write(n.Id + " ");
+            }
+            Console.WriteLine();
+            Console.WriteLine("caminho euleriano Tarjan: ");
+            foreach (Node n in nodest)
+            {
+                Console.Write(n.Id + " ");
+            }
+
+
+            /*
              // Criando uma instância de um grafo não direcionado
              Graph graph = new Graph();
              Graph graph2 = new Graph();
@@ -52,17 +128,17 @@ namespace Grafos
              graph.removeEdge(teste, node1);
              graph.printMatrix();
              graph.printGraph();
-             Console.WriteLine("removendo aresta: ");
+             Console.WriteLine("removendo vétice: ");
              graph.removeNode(teste);
              graph.printMatrix();
              graph.printGraph();
              Console.WriteLine();
              Console.WriteLine("checando adjacencia entre os vertices a e b: " + graph.AreNodeAdjacency(node1, node2));
-             graph.addEdgeLabel(node1, node2, "label1");
-             graph.addEdgeLabel(node2, node3, "label2");
-             graph.addEdgeLabel(node4, node2, "label3");
+             graph.AddEdgeLabel(node1, node2, "label1");
+             graph.AddEdgeLabel(node2, node3, "label2");
+             graph.AddEdgeLabel(node4, node2, "label3");
              Console.WriteLine("checando adjacencia entre as arestas 1 e 2: " + graph.AreEdgesAdjacent("label1", "label2"));
-             Console.WriteLine("checando adjacencia entre as arestas 1 e 2: " + graph.AreEdgesAdjacent("label1", "label3"));
+             Console.WriteLine("checando adjacencia entre as arestas 1 e 3: " + graph.AreEdgesAdjacent("label1", "label3"));
              Console.WriteLine("checando se existe a aresta 'a'->'b': " + graph.ExistsEdge(node1, node2));
              Console.WriteLine("checando a quantidade de vertices e arestas: ");
              Console.WriteLine("vertices: " + graph.CountNodes());
@@ -94,9 +170,9 @@ namespace Grafos
             graph.AddNode(node3);
 
             // Testando adição de arestas e impressão do grafo
-            graph.addEdge(node1, node2, 1);
-            graph.addEdge(node2, node3, 1);
-            graph.addEdge(node1, node3, 2);
+            graph.AddEdge(node1, node2, 1);
+            graph.AddEdge(node2, node3, 1);
+            graph.AddEdge(node1, node3, 2);
             Console.WriteLine("Grafo:");
             graph.printGraph();
 
@@ -116,24 +192,24 @@ namespace Grafos
 
             // Testando adjacência de nós e arestas
             Console.WriteLine("Checando adjacência entre A e C: " + graph.AreNodeAdjacency(node1, node3)); // Deve imprimir False
-            graph.addEdgeLabel(node1, node3, "label1");
+            graph.AddEdgeLabel(node1, node3, "label1");
             Console.WriteLine("Checando adjacência entre as arestas 1 e 2: " + graph.AreEdgesAdjacent("label1", "label2")); // Deve imprimir False
             Console.WriteLine("Checando se existe a aresta 'A'->'C': " + graph.ExistsEdge(node1, node3)); // Deve imprimir True
 
             // Testando métodos de conectividade
             Console.WriteLine("Grafo está conectado: " + graph.isConnected()); // Deve imprimir False
-            graph.addEdge(node1, node3);
+            graph.AddEdge(node1, node3);
             Console.WriteLine("Grafo está conectado: " + graph.isConnected()); // Deve imprimir True
 
             // Testando métodos de verificação de grafos
-            Console.WriteLine("Grafo é completo: " + graph.AreCompletGraph()); // Deve imprimir True
+            Console.WriteLine("Grafo é completo: " + graph.IsComplete()); // Deve imprimir True
 
             // Testando métodos de identificação de pontes
             Console.WriteLine("Pontes encontradas pelo método Naive:");
             graph.PrintBridgesNaive();
 
             Console.WriteLine("Pontes encontradas pelo método de Tarjan:");
-            graph.PrintBridgesTarjan();*/
+            graph.PrintBridgesTarjan();
 
 
 
@@ -153,9 +229,9 @@ namespace Grafos
                Console.WriteLine(node.Id);
            }*/
 
-            Stopwatch sw = new Stopwatch();
+            /*Stopwatch sw = new Stopwatch();
             sw.Start();
-            Graph graph = Graph.GenerateConnectedGraph(10000);
+            Graph graphtn = Graph.GenerateConnectedGraph(100);
             sw.Stop();
 
             graph.PrintAdjacencyList();
@@ -171,10 +247,10 @@ namespace Grafos
 
 
             sw2.Start();
-            List<Node> eulerianCycle = graph.FleuryNaive();
+            List<Node> eulerianCycle = graphtn.FleuryTarjan();
             sw2.Stop();
-            Console.WriteLine("Tempo de criação do grafo com 10000 vértices: " + sw.Elapsed);
-            Console.WriteLine("Tempo de execução do Fleury com Naive: " + sw2.Elapsed);
+            Console.WriteLine("Tempo de criação do grafo com 1000 vértices: " + sw.Elapsed);
+            Console.WriteLine("Tempo de execução do Fleury com Tarjan: " + sw2.Elapsed);
 
 
             Console.WriteLine("caminho euleriano");
@@ -184,8 +260,9 @@ namespace Grafos
                 {
                     Console.Write(node.Id + " ");
                 }
-            }
-            
+            }*/
+
         }
+
     }
 }
